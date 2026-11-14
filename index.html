@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Régua Musical Interativa - Padrões de Escalas</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Cabeçalho -->
+    <header class="app-header">
+      <div class="header-badge">Teoria Musical Interativa</div>
+      <h1 class="main-title">Padrão das Escalas Musicais</h1>
+      <p class="subtitle">
+        Arraste a fita cromática horizontalmente para alinhar qualquer tônica com a regra dos intervalos.
+      </p>
+    </header>
+
+    <!-- Barra de Controles e Seletores -->
+    <section class="controls-panel">
+      <div class="control-group">
+        <label for="scaleSelect" class="control-label">Padrão da Escala:</label>
+        <div class="custom-select-wrapper">
+          <select id="scaleSelect" class="custom-select">
+            <optgroup label="Escalas Principais">
+              <option value="major" selected>Escala Maior Natural</option>
+              <option value="minor_natural">Escala Menor Natural (Eólio)</option>
+              <option value="minor_harmonic">Escala Menor Harmônica</option>
+              <option value="minor_melodic">Escala Menor Melódica</option>
+            </optgroup>
+            <optgroup label="Pentatônicas">
+              <option value="penta_major">Pentatônica Maior</option>
+              <option value="penta_minor">Pentatônica Menor</option>
+              <option value="blues">Escala Blues (com Blue Note)</option>
+            </optgroup>
+            <optgroup label="Modos Gregos">
+              <option value="dorian">Dórico</option>
+              <option value="phrygian">Frígio</option>
+              <option value="lydian">Lídio</option>
+              <option value="mixolydian">Mixolídio</option>
+              <option value="locrian">Lócrio</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Notação:</label>
+        <div class="toggle-group" id="accidentalToggle">
+          <button type="button" class="toggle-btn active" data-notation="sharp">Sustenidos (♯)</button>
+          <button type="button" class="toggle-btn" data-notation="flat">Bemóis (♭)</button>
+          <button type="button" class="toggle-btn" data-notation="both">Ambos (♯/♭)</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Nomenclatura:</label>
+        <div class="toggle-group" id="namingToggle">
+          <button type="button" class="toggle-btn active" data-naming="latim">Dó, Ré, Mi</button>
+          <button type="button" class="toggle-btn" data-naming="cifra">C, D, E</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Área Principal da Régua Interativa -->
+    <main class="interactive-stage">
+      <!-- Indicador da Tônica / Linha Guia -->
+      <div class="stage-guide-container">
+        <div class="tonic-pointer-label">
+          <span class="pointer-badge">TÔNICA (Grau I)</span>
+          <div class="pointer-arrow">▼</div>
+        </div>
+      </div>
+
+      <!-- Régua Superior: Máscara Fixa dos Intervalos (Setas Tom / Semitom) -->
+      <div class="intervals-ruler-wrapper">
+        <div class="intervals-canvas-container" id="intervalsContainer">
+          <svg id="intervalsSvg" class="intervals-svg"></svg>
+        </div>
+      </div>
+
+      <!-- Régua Inferior: Fita Cromática Infinita (Arraste lateral) -->
+      <div class="tape-viewport" id="tapeViewport">
+        <div class="tape-track" id="tapeTrack">
+          <!-- Células cromáticas injetadas via JS -->
+        </div>
+        <!-- Gradientes de esmaecimento lateral nas bordas -->
+        <div class="viewport-shadow left-shadow"></div>
+        <div class="viewport-shadow right-shadow"></div>
+      </div>
+
+      <!-- Controles de Navegação Rápida da Fita -->
+      <div class="tape-navigation-bar">
+        <button id="btnPrevSemitone" class="nav-btn" title="Recuar 1 Semitom">
+          <span class="icon">◀</span> -1 Semitom
+        </button>
+        <div class="drag-hint">
+          <span class="drag-icon">↔</span> Arraste com o dedo ou mouse
+        </div>
+        <button id="btnNextSemitone" class="nav-btn" title="Avançar 1 Semitom">
+          +1 Semitom <span class="icon">▶</span>
+        </button>
+      </div>
+
+      <!-- Atalhos rápidos de Tônica -->
+      <div class="quick-roots-wrapper">
+        <span class="quick-label">Alinhar Tônica direta:</span>
+        <div class="quick-roots-list" id="quickRootsList">
+          <!-- Botões C, C#, D, etc. injetados dinamicamente -->
+        </div>
+      </div>
+    </main>
+
+    <!-- Painel de Resultado e Análise Musical -->
+    <section class="results-dashboard">
+      <div class="dashboard-header">
+        <div class="current-scale-summary">
+          <span class="summary-prefix">Escala Selecionada:</span>
+          <h2 class="current-scale-title" id="currentScaleTitle">Dó Maior Natural</h2>
+          <div class="formula-badge" id="scaleFormulaBadge">T - T - ST - T - T - T - ST</div>
+        </div>
+
+        <button id="btnPlayScale" class="play-audio-btn">
+          <span class="play-icon">▶</span> Ouvir Escala
+        </button>
+      </div>
+
+      <!-- Tabela / Lista dos Graus da Escala Resultante -->
+      <div class="scale-degrees-grid" id="scaleDegreesGrid">
+        <!-- Cartões de cada grau gerados dinamicamente -->
+      </div>
+    </section>
+
+    <!-- Seção Explicativa Teórica e Didática -->
+    <section class="theory-card">
+      <h3 class="theory-title">📖 Como funciona a Régua de Escalas?</h3>
+      <div class="theory-content">
+        <p>
+          A música ocidental divide a oitava em <strong>12 semitons</strong> (a escala cromática). 
+          Cada tipo de escala nada mais é do que uma <strong>fórmula fixa de distâncias</strong> (tons e semitons) aplicada a partir de uma nota de partida (a <em>Tônica</em>).
+        </p>
+        <ul class="theory-list">
+          <li><strong>TOM (T):</strong> Salto de 2 semitons (pula 1 casa na fita cromática).</li>
+          <li><strong>SEMITOM (ST):</strong> Menor distância padrão (casa imediatamente vizinha).</li>
+          <li><strong>Efeito deslizante:</strong> Ao mover a fita cromática para qualquer lado, as notas sob os vértices das setas mudam automaticamente, revelando instantaneamente todas as notas da escala escolhida sem precisar decorar uma por uma!</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="app-footer">
+      <p>Desenvolvido para estudo e ensino de Teoria e Harmonia Musical • Baseado no modelo original de Padrão de Escalas</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
