@@ -163,6 +163,8 @@ const dom = {
   intervalsContainer: document.getElementById("intervalsContainer"),
   intervalsSvg: document.getElementById("intervalsSvg"),
   
+  degreePointersContainer: document.getElementById("degreePointersContainer"),
+
   tapeViewport: document.getElementById("tapeViewport"),
   tapeTrack: document.getElementById("tapeTrack"),
   
@@ -195,7 +197,7 @@ function init() {
     updateCellDimensions();
     renderIntervalsSvg();
     alignToPitch(state.currentRootPitch, false);
-    renderTapeHighlights();
+    renderTapeHighlights(); // inclui renderDegreePointers
   });
 }
 
@@ -219,13 +221,7 @@ function updateCellDimensions() {
   if (dom.intervalsContainer) {
     dom.intervalsContainer.style.transform = `translateX(${state.anchorX}px)`;
   }
-
-  // Ajusta a posição do indicador da tônica (ponteiro) alinhado ao centro da célula
-  const pointerLabel = document.querySelector(".tonic-pointer-label");
-  if (pointerLabel) {
-    const centerTonicX = state.anchorX + (state.cellWidth / 2);
-    pointerLabel.style.transform = `translateX(${centerTonicX}px) translateX(-50%)`;
-  }
+}
 }
 
 // ==========================================
@@ -613,6 +609,69 @@ function renderTapeHighlights() {
   });
 
   updateQuickRootsActive();
+  renderDegreePointers();
+}
+
+// ==========================================
+// 8b. Renderiza os badges de Grau acima da régua
+// ==========================================
+
+const DEGREE_NAMES_SHORT = [
+  "Tônica (Grau I)",
+  "Supertônica",
+  "Mediante",
+  "Subdominante",
+  "Dominante",
+  "Sobredominante",
+  "Sensível",
+  "Tônica (Grau VIII)"
+];
+
+const DEGREE_NAMES_PENTA = {
+  penta_major: ["Tônica (Grau I)", "Segunda", "Terça", "Quinta", "Sexta", "Tônica (Grau VIII)"],
+  penta_minor: ["Tônica (Grau I)", "3ª Menor", "Quarta", "Quinta", "7ª Menor", "Tônica (Grau VIII)"],
+  blues: ["Tônica (Grau I)", "3ª Menor", "Quarta", "Blue Note (4ª♯)", "Quinta", "7ª Menor", "Tônica (Grau VIII)"]
+};
+
+function renderDegreePointers() {
+  const container = dom.degreePointersContainer;
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const relativeOffsets = getScaleRelativeOffsets();
+  const analysis = getScaleAnalysis();
+  const scale = SCALES[state.currentScaleKey];
+
+  // Nomes dos graus: usa tabela especial para escalas não-heptatônicas
+  const degreeLabels =
+    DEGREE_NAMES_PENTA[state.currentScaleKey] ||
+    DEGREE_NAMES_SHORT.slice(0, relativeOffsets.length);
+
+  relativeOffsets.forEach((semitones, degIdx) => {
+    // Posição X do centro desta célula de grau
+    const cellX = state.anchorX + (semitones * state.cellWidth) + (state.cellWidth / 2);
+
+    const isRoot = degIdx === 0 || degIdx === relativeOffsets.length - 1;
+    const hasConflict = analysis.degrees[degIdx]?.hasConflict;
+
+    const ptr = document.createElement("div");
+    ptr.className = "degree-pointer" +
+      (isRoot ? " is-tonic-ptr" : "") +
+      (hasConflict ? " has-conflict-ptr" : "");
+
+    const label = degreeLabels[degIdx] || `Grau ${degIdx + 1}`;
+
+    ptr.innerHTML = `
+      <span class="degree-pointer-badge">${label}</span>
+      <div class="degree-pointer-arrow">▼</div>
+    `;
+
+    // Posiciona horizontalmente via translateX
+    ptr.style.transform = `translateX(${cellX}px) translateX(-50%)`;
+
+    container.appendChild(ptr);
+  });
 }
 
 // ==========================================
@@ -1064,7 +1123,7 @@ function setupEventListeners() {
 
 function renderAll() {
   renderIntervalsSvg();
-  renderTapeHighlights();
+  renderTapeHighlights(); // renderDegreePointers é chamada dentro de renderTapeHighlights
   renderDashboard();
   updateQuickRootsActive();
 }
