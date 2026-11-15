@@ -66,6 +66,24 @@
       </div>
     </section>
 
+    <!-- Painel de Resultado e Análise Musical -->
+    <section class="results-dashboard">
+      <div class="dashboard-header">
+        <div class="current-scale-summary">
+          <span class="summary-prefix">Escala Selecionada:</span>
+          <h2 class="current-scale-title" id="currentScaleTitle">Dó Maior Natural</h2>
+          <div class="formula-badge" id="scaleFormulaBadge">T - T - ST - T - T - T - ST</div>
+        </div>
+
+        <button id="btnPlayScale" class="play-audio-btn">
+          <span class="play-icon">▶</span> Ouvir Escala
+        </button>
+      </div>
+
+      <!-- Banner Didático de Alerta / Sucesso de Ortografia Diatônica -->
+      <div id="theoryBannerContainer" class="theory-banner-wrapper"></div>
+    </section>
+
     <!-- Área Principal da Régua Interativa -->
     <main class="interactive-stage">
       <!-- Indicador dos Graus / Linha Guia Superior -->
@@ -95,45 +113,15 @@
         <button id="btnPrevSemitone" class="nav-btn" title="Recuar 1 Semitom">
           <span class="icon">◀</span> -1 Semitom
         </button>
-        <div class="drag-hint">
-          <span class="drag-icon">↔</span> Arraste com o dedo ou mouse
+        <!-- Atalhos rápidos de Tônica -->
+        <div class="quick-roots-list" id="quickRootsList">
+          <!-- Botões C, C#, D, etc. injetados dinamicamente -->
         </div>
         <button id="btnNextSemitone" class="nav-btn" title="Avançar 1 Semitom">
           +1 Semitom <span class="icon">▶</span>
         </button>
       </div>
-
-      <!-- Atalhos rápidos de Tônica -->
-      <div class="quick-roots-wrapper">
-        <span class="quick-label">Alinhar Tônica direta:</span>
-        <div class="quick-roots-list" id="quickRootsList">
-          <!-- Botões C, C#, D, etc. injetados dinamicamente -->
-        </div>
-      </div>
     </main>
-
-    <!-- Painel de Resultado e Análise Musical -->
-    <section class="results-dashboard">
-      <div class="dashboard-header">
-        <div class="current-scale-summary">
-          <span class="summary-prefix">Escala Selecionada:</span>
-          <h2 class="current-scale-title" id="currentScaleTitle">Dó Maior Natural</h2>
-          <div class="formula-badge" id="scaleFormulaBadge">T - T - ST - T - T - T - ST</div>
-        </div>
-
-        <button id="btnPlayScale" class="play-audio-btn">
-          <span class="play-icon">▶</span> Ouvir Escala
-        </button>
-      </div>
-
-      <!-- Banner Didático de Alerta / Sucesso de Ortografia Diatônica -->
-      <div id="theoryBannerContainer" class="theory-banner-wrapper"></div>
-
-      <!-- Tabela / Lista dos Graus da Escala Resultante -->
-      <div class="scale-degrees-grid" id="scaleDegreesGrid">
-        <!-- Cartões de cada grau gerados dinamicamente -->
-      </div>
-    </section>
 
     <!-- Seção de Notação Musical na Pauta (Pentagrama) -->
     <section class="musical-card">

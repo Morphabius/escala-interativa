@@ -203,6 +203,7 @@ const state = {
   totalCycles: 7,      // 7 repetições de 12 semitons = 84 células
   trackOffset: 0,      // Deslocamento X atual em pixels
   isDragging: false,
+  justDragged: false,
   dragStartX: 0,
   dragStartOffset: 0,
   
@@ -233,7 +234,6 @@ const dom = {
   
   currentScaleTitle: document.getElementById("currentScaleTitle"),
   scaleFormulaBadge: document.getElementById("scaleFormulaBadge"),
-  scaleDegreesGrid: document.getElementById("scaleDegreesGrid"),
   theoryBannerContainer: document.getElementById("theoryBannerContainer"),
   btnPlayScale: document.getElementById("btnPlayScale"),
 
@@ -370,11 +370,18 @@ function buildTapeCells() {
     cell.innerHTML = `
       <span class="cell-note-name">${getNoteName(pitchClass)}</span>
       <span class="cell-enharmonic">${getEnharmonicSubtitle(pitchClass)}</span>
+      <span class="degree-name"></span>
       <span class="cell-degree-tag"></span>
     `;
 
     cell.addEventListener("click", () => {
-      if (!state.isDragging) {
+      if (state.isDragging || state.justDragged) return;
+      if (cell.classList.contains("in-scale") && cell.dataset.midi) {
+        const midi = parseInt(cell.dataset.midi, 10);
+        playTone(midi, 0.45);
+        cell.classList.add("is-playing");
+        setTimeout(() => cell.classList.remove("is-playing"), 220);
+      } else {
         alignToPitch(pitchClass, true);
         playTone(pitchClass + 60);
       }
@@ -638,6 +645,7 @@ function renderTapeHighlights() {
     const pitch = parseInt(cell.dataset.pitch);
     const noteNameEl = cell.querySelector(".cell-note-name");
     const enharmonicEl = cell.querySelector(".cell-enharmonic");
+    const degreeNameEl = cell.querySelector(".degree-name");
     const degreeTagEl = cell.querySelector(".cell-degree-tag");
     
     const diffFromTonicCell = idx - activeTonicCellIndex;
@@ -680,6 +688,14 @@ function renderTapeHighlights() {
         enharmonicEl.textContent = getEnharmonicSubtitle(pitch);
       }
 
+      // Descrição do grau / intervalo transferida para a fita
+      if (degreeNameEl) {
+        degreeNameEl.textContent = scale.intervalsDesc[degreeIndex] || "";
+      }
+
+      // Nota MIDI exata do grau (com oitava ascendente para o Grau VIII soar 1 oitava acima do I)
+      cell.dataset.midi = 60 + state.currentRootPitch + relativeOffsets[degreeIndex];
+
       // Grau exibido na tag
       const degRoman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][degreeIndex] || (degreeIndex + 1);
       degreeTagEl.textContent = degRoman;
@@ -694,6 +710,10 @@ function renderTapeHighlights() {
       cell.classList.remove("in-scale", "is-tonic", "has-conflict");
       noteNameEl.textContent = getNoteName(pitch);
       enharmonicEl.textContent = getEnharmonicSubtitle(pitch);
+      if (degreeNameEl) {
+        degreeNameEl.textContent = "";
+      }
+      delete cell.dataset.midi;
       degreeTagEl.textContent = "";
     }
   });
@@ -720,40 +740,6 @@ function renderDashboard() {
 
   // Renderiza o Banner Didático Teórico
   renderTheoryBanner(scaleAnalysis);
-
-  // Grid de Graus
-  dom.scaleDegreesGrid.innerHTML = "";
-  const relativeOffsets = getScaleRelativeOffsets();
-
-  scaleAnalysis.degreeNotes.forEach((noteNameRaw, i) => {
-    const isRoot = i === 0 || i === scaleAnalysis.degreeNotes.length - 1;
-    const hasConflict = scaleAnalysis.conflictDegreeIndices.has(i);
-    const card = document.createElement("div");
-    card.className = `degree-card ${isRoot ? "is-root" : ""} ${hasConflict ? "has-conflict" : ""}`;
-
-    const degreeNum = scale.degrees[i] ? scale.degrees[i].split(" ")[0] : `Grau ${i+1}`;
-    const intervalName = scale.intervalsDesc[i] || "";
-    
-    let noteName = noteNameRaw;
-    if (state.naming === "cifra") {
-      noteName = translateToCifra(noteName);
-    }
-
-    card.innerHTML = `
-      <span class="degree-num">${degreeNum}</span>
-      <span class="degree-note">${noteName}</span>
-      <span class="degree-name">${intervalName}</span>
-      ${hasConflict ? '<span class="conflict-badge">⚠️ Repetição</span>' : ''}
-    `;
-
-    const offset = relativeOffsets[i] !== undefined ? relativeOffsets[i] : 0;
-    const midiNote = 60 + state.currentRootPitch + offset;
-    card.addEventListener("click", () => {
-      playTone(midiNote);
-    });
-
-    dom.scaleDegreesGrid.appendChild(card);
-  });
 
   // Atualiza a Notação Musical na Pauta (Pentagrama)
   renderMusicalStaff();
@@ -855,6 +841,7 @@ function setupDragEvents() {
 
   const onPointerDown = (e) => {
     state.isDragging = true;
+    state.justDragged = false;
     state.dragStartX = e.clientX;
     state.dragStartOffset = state.trackOffset;
     dom.tapeTrack.style.transition = "none";
@@ -864,6 +851,9 @@ function setupDragEvents() {
   const onPointerMove = (e) => {
     if (!state.isDragging) return;
     const deltaX = e.clientX - state.dragStartX;
+    if (Math.abs(deltaX) > 4) {
+      state.justDragged = true;
+    }
     state.trackOffset = state.dragStartOffset + deltaX;
 
     const singleCycleWidth = 12 * state.cellWidth;
@@ -894,6 +884,14 @@ function setupDragEvents() {
     if (!state.isDragging) return;
     state.isDragging = false;
     viewport.releasePointerCapture(e.pointerId);
+
+    if (!state.justDragged) {
+      return;
+    }
+
+    setTimeout(() => {
+      state.justDragged = false;
+    }, 60);
 
     const nearestCell = Math.round((state.anchorX - state.trackOffset) / state.cellWidth);
     state.currentRootPitch = ((nearestCell % 12) + 12) % 12;
@@ -1075,13 +1073,11 @@ function playScaleSequence() {
     playTone(midi, 0.45, delay);
 
     setTimeout(() => {
-      const cards = dom.scaleDegreesGrid.querySelectorAll(".degree-card");
-      if (cards[idx]) {
-        cards[idx].style.transform = "scale(1.08)";
-        cards[idx].style.borderColor = "#f59e0b";
+      const cells = dom.tapeTrack.querySelectorAll(".chromatic-cell.in-scale");
+      if (cells[idx]) {
+        cells[idx].classList.add("is-playing");
         setTimeout(() => {
-          cards[idx].style.transform = "";
-          cards[idx].style.borderColor = "";
+          cells[idx].classList.remove("is-playing");
         }, 280);
       }
     }, delay * 1000);
