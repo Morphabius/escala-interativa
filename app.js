@@ -268,19 +268,28 @@ function init() {
 }
 
 function updateCellDimensions() {
-  const rootStyle = getComputedStyle(document.documentElement);
-  state.cellWidth = parseInt(rootStyle.getPropertyValue("--cell-width")) || 80;
-  
-  // Calcula o ponto de ancoragem (onde a primeira nota da escala deve ficar)
   const viewportWidth = dom.tapeViewport.clientWidth || 900;
+
+  if (viewportWidth >= 660) {
+    // Em tablets e desktops, ajusta a largura da célula dinamicamente para exibir os 13 semitons inteiros
+    state.cellWidth = Math.min(80, Math.max(50, Math.floor((viewportWidth - 16) / 13)));
+  } else if (viewportWidth >= 420) {
+    state.cellWidth = 60;
+  } else {
+    state.cellWidth = 54;
+  }
+
+  document.documentElement.style.setProperty("--cell-width", `${state.cellWidth}px`);
+
+  // Calcula o ponto de ancoragem (onde a primeira nota da escala deve ficar)
   const scaleSpan = 13 * state.cellWidth;
-  
-  if (viewportWidth > scaleSpan + 60) {
+
+  if (viewportWidth >= scaleSpan + 16) {
     state.anchorX = Math.round((viewportWidth - scaleSpan) / 2);
   } else {
-    state.anchorX = 40;
+    state.anchorX = 8;
   }
-  
+
   // Posiciona o container de arcos SVG exatamente em anchorX
   if (dom.intervalsContainer) {
     dom.intervalsContainer.style.transform = `translateX(${state.anchorX}px)`;

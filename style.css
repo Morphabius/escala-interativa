@@ -216,6 +216,7 @@ body {
   position: relative;
   z-index: 20;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .degree-pointer-label {
@@ -305,6 +306,7 @@ body {
 .intervals-svg {
   height: 100%;
   display: block;
+  overflow: visible;
 }
 
 /* Fita Cromática Infinita (Viewport e Track) */
@@ -1112,6 +1114,11 @@ body {
 
   body {
     padding: 16px 10px 32px;
+    overflow-x: hidden;
+  }
+
+  .interactive-stage {
+    padding: 16px 10px 14px;
   }
 
   .controls-panel {
@@ -1173,8 +1180,12 @@ body {
 
 @media (max-width: 480px) {
   :root {
-    --cell-width: 60px;
+    --cell-width: 54px;
     --cell-height: 98px;
+  }
+
+  .interactive-stage {
+    padding: 14px 6px 12px;
   }
 
   .scale-degrees-grid {
