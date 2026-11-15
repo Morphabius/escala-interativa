@@ -251,6 +251,8 @@ body {
 .degree-pointer-label.is-tonic .pointer-badge {
   background: var(--tonic-color);
   color: #1a1303;
+  font-size: 0.68rem;
+  padding: 2px 9px;
   box-shadow: 0 2px 8px var(--tonic-glow);
 }
 
@@ -258,11 +260,17 @@ body {
   color: var(--tonic-color);
 }
 
-/* Badges dos Demais Graus (II, III, IV...) em Azul Elétrico */
+/* Badges dos Demais Graus (II a VII) em Azul Elétrico */
 .degree-pointer-label.is-degree .pointer-badge {
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   color: #ffffff;
   border: 1px solid #38bdf8;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 2px 7px;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.45);
+}
   box-shadow: 0 2px 6px rgba(2, 132, 199, 0.45);
 }
 

@@ -292,21 +292,43 @@ function renderDegreePointers() {
 
   const scale = SCALES[state.currentScaleKey];
   const relativeOffsets = getScaleRelativeOffsets();
-  const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
+  const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
 
-  relativeOffsets.forEach((offset, idx) => {
+  const defaultDegreeNames = [
+    "Tônica",
+    "Supertônica",
+    "Mediante",
+    "Subdominante",
+    "Dominante",
+    "Sobredominante",
+    "Sensível"
+  ];
+
+  // Renderiza apenas os graus I a VII (omite o Grau VIII conforme solicitado)
+  const count = Math.min(relativeOffsets.length - 1, 7);
+
+  for (let idx = 0; idx < count; idx++) {
+    const offset = relativeOffsets[idx];
     const isTonic = idx === 0;
-    const isOctave = idx === relativeOffsets.length - 1;
     const roman = romanNumerals[idx] || (idx + 1);
+
+    // Obtém o nome específico do grau (Supertônica, Mediante, Subdominante, Dominante, Sobredominante, Sensível...)
+    let degreeName = defaultDegreeNames[idx] || `Grau ${roman}`;
+    if (scale.degrees && scale.degrees[idx]) {
+      const match = scale.degrees[idx].match(/\((.*?)\)/);
+      if (match) {
+        degreeName = match[1];
+      }
+    }
 
     const pointerEl = document.createElement("div");
     pointerEl.className = `degree-pointer-label ${isTonic ? "is-tonic" : "is-degree"}`;
 
-    const fullLabel = isTonic ? "TÔNICA (I)" : `Grau ${roman}`;
+    const fullLabel = isTonic ? "TÔNICA" : degreeName;
     const shortLabel = isTonic ? "I" : roman;
 
     pointerEl.innerHTML = `
-      <span class="pointer-badge" title="${isTonic ? 'Grau I (Tônica)' : (isOctave ? 'Grau VIII (Oitava)' : `Grau ${roman}`)}">
+      <span class="pointer-badge" title="Grau ${roman}: ${degreeName}">
         <span class="label-full">${fullLabel}</span>
         <span class="label-short">${shortLabel}</span>
       </span>
@@ -317,7 +339,7 @@ function renderDegreePointers() {
     pointerEl.style.transform = `translateX(${targetX}px) translateX(-50%)`;
 
     container.appendChild(pointerEl);
-  });
+  }
 }
 
 // ==========================================
