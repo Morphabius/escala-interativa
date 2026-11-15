@@ -208,17 +208,16 @@ body {
   overflow: hidden;
 }
 
-/* Faixa de Indicadores de Graus */
-.degree-pointers-container {
+/* Indicador e Guia da Tônica */
+.stage-guide-container {
   width: 100%;
-  height: 38px;
+  height: 28px;
   position: relative;
   z-index: 20;
   pointer-events: none;
-  margin-bottom: 4px;
 }
 
-.degree-pointer {
+.tonic-pointer-label {
   position: absolute;
   top: 0;
   left: 0;
@@ -226,65 +225,25 @@ body {
   flex-direction: column;
   align-items: center;
   will-change: transform;
-  pointer-events: none;
 }
 
-.degree-pointer-badge {
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  padding: 3px 8px;
-  border-radius: var(--radius-full);
-  white-space: nowrap;
-  line-height: 1.3;
-}
-
-.degree-pointer-arrow {
-  font-size: 0.82rem;
-  line-height: 1;
-  margin-top: -2px;
-}
-
-/* Grau I e Grau VIII (Tônica / Oitava) — [Dourado] */
-.degree-pointer.is-tonic-ptr .degree-pointer-badge {
+.pointer-badge {
   background: var(--tonic-color);
   color: #1a1303;
-  box-shadow: 0 2px 8px var(--tonic-glow);
+  font-size: 0.72rem;
   font-weight: 800;
+  letter-spacing: 0.6px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 8px var(--tonic-glow);
+  white-space: nowrap;
 }
 
-.degree-pointer.is-tonic-ptr .degree-pointer-arrow {
+.pointer-arrow {
   color: var(--tonic-color);
-}
-
-/* Demais Graus (II, III, IV, V, VI, VII) — [Azul] */
-.degree-pointer:not(.is-tonic-ptr) .degree-pointer-badge {
-  background: #0284c7;
-  color: #ffffff;
-  border: 1px solid #38bdf8;
-  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.45);
-  font-weight: 700;
-}
-
-.degree-pointer:not(.is-tonic-ptr) .degree-pointer-arrow {
-  color: #0284c7;
-}
-
-/* Grau com conflito ortográfico — [Vermelho] */
-.degree-pointer.has-conflict-ptr .degree-pointer-badge {
-  background: #ef4444 !important;
-  color: #ffffff !important;
-  border: 1px solid #f87171 !important;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5) !important;
-}
-
-.degree-pointer.has-conflict-ptr .degree-pointer-arrow {
-  color: #ef4444 !important;
-}
-
-/* Indicador e Guia da Tônica */
-.stage-guide-container {
-  display: none; /* substituído pela nova faixa de graus */
+  font-size: 0.85rem;
+  line-height: 1;
+  margin-top: -2px;
 }
 
 /* Régua Superior (Intervalos SVG) */
@@ -456,43 +415,27 @@ body {
   color: #1a1303;
 }
 
-/* Células em Conflito de Ortografia Diatônica (Vermelho) */
+/* Conflito de Regra Diatônica (Notas com mesmo nome base em vermelho) */
 .chromatic-cell.in-scale.has-conflict {
-  background: rgba(239, 68, 68, 0.22) !important;
-  border-right: 1px solid #ef4444 !important;
-  border-left: 1px solid #ef4444 !important;
-  animation: pulse-conflict 2s infinite ease-in-out;
+  background: rgba(239, 68, 68, 0.18) !important;
+  border-right-color: #ef4444 !important;
 }
 
 .chromatic-cell.in-scale.has-conflict .cell-note-name {
-  color: #fca5a5 !important;
-  font-weight: 800;
+  color: #ef4444 !important;
   text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
-}
-
-.chromatic-cell.in-scale.has-conflict .cell-enharmonic {
-  color: #f87171 !important;
-  opacity: 1;
+  font-weight: 800;
 }
 
 .chromatic-cell.in-scale.has-conflict .cell-degree-tag {
   background: #ef4444 !important;
   color: #ffffff !important;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
 }
 
-.chromatic-cell.is-tonic.has-conflict {
+.chromatic-cell.in-scale.has-conflict.is-tonic {
   border-left: 2px solid #ef4444 !important;
   border-right: 2px solid #ef4444 !important;
-}
-
-@keyframes pulse-conflict {
-  0%, 100% {
-    box-shadow: inset 0 0 8px rgba(239, 68, 68, 0.3);
-  }
-  50% {
-    box-shadow: inset 0 0 16px rgba(239, 68, 68, 0.5);
-  }
+  background: rgba(239, 68, 68, 0.22) !important;
 }
 
 /* Barra de Navegação Rápida */
@@ -722,88 +665,115 @@ body {
   color: var(--tonic-color);
 }
 
-/* Card de Grau com Conflito */
+/* Card com conflito de nomeação em vermelho */
 .degree-card.has-conflict {
-  border-color: #ef4444 !important;
   background: rgba(239, 68, 68, 0.12) !important;
-}
-
-.degree-card.has-conflict .degree-num {
-  color: #f87171 !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+  animation: pulse-border-red 2.5s infinite ease-in-out;
 }
 
 .degree-card.has-conflict .degree-note {
+  color: #ef4444 !important;
+  font-weight: 800;
+}
+
+.degree-card.has-conflict .degree-num {
   color: #fca5a5 !important;
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
-.degree-card.has-conflict .degree-name {
-  color: #f87171 !important;
+.conflict-badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  margin-top: 2px;
 }
 
-/* Banner de Alerta / Sucesso de Ortografia */
-.orthography-banner {
+@keyframes pulse-border-red {
+  0%, 100% { border-color: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.2); }
+  50% { border-color: #f87171; box-shadow: 0 0 16px rgba(239, 68, 68, 0.45); }
+}
+
+/* Banners Didáticos de Análise Teórica */
+.theory-banner-wrapper {
+  width: 100%;
+}
+
+.theory-alert-banner {
   border-radius: var(--radius-md);
-  padding: 14px 18px;
+  padding: 12px 16px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   line-height: 1.5;
   transition: all 0.25s ease;
 }
 
-.orthography-banner.conflict-banner {
+.theory-alert-banner .alert-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.theory-alert-banner.alert-warning {
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.35);
   color: #fecaca;
 }
 
-.orthography-banner.conflict-banner .banner-icon {
-  font-size: 1.3rem;
-  line-height: 1;
-}
-
-.orthography-banner.conflict-banner .banner-title {
-  font-weight: 700;
+.theory-alert-banner.alert-warning strong {
   color: #ef4444;
-  margin-bottom: 3px;
-  font-size: 0.95rem;
 }
 
-.orthography-banner.conflict-banner strong {
+.theory-alert-banner.alert-warning .conflict-names {
   color: #ffffff;
-}
-
-.orthography-banner.conflict-banner .conflict-tag {
-  background: rgba(239, 68, 68, 0.25);
-  color: #ffffff;
-  padding: 1px 7px;
-  border-radius: 4px;
   font-weight: 700;
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.3);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
 }
 
-.orthography-banner.success-banner {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+.theory-alert-banner.alert-warning .alert-hint {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-main);
+}
+
+.theory-alert-banner.alert-warning .alert-hint strong {
+  color: var(--accent-primary);
+}
+
+.theory-alert-banner.alert-warning .fixed-names {
+  color: #38bdf8;
+  font-weight: 700;
+  background: rgba(56, 189, 248, 0.2);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.theory-alert-banner.alert-success {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
   color: #a7f3d0;
 }
 
-.orthography-banner.success-banner .banner-icon {
-  font-size: 1.2rem;
-  line-height: 1;
+.theory-alert-banner.alert-success strong {
+  color: #34d399;
 }
 
-.orthography-banner.success-banner .banner-title {
-  font-weight: 700;
-  color: #10b981;
-  margin-bottom: 2px;
-  font-size: 0.95rem;
-}
-
-.orthography-banner.success-banner strong {
+.theory-alert-banner.alert-success .fixed-names {
   color: #ffffff;
+  font-weight: 700;
+  background: rgba(16, 185, 129, 0.25);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
 }
 
 /* Card Teórico */
@@ -894,22 +864,12 @@ body {
   .scale-degrees-grid {
     grid-template-columns: repeat(4, 1fr);
   }
-
-  .degree-pointer-badge {
-    font-size: 0.55rem;
-    padding: 2px 5px;
-  }
 }
 
 @media (max-width: 480px) {
   :root {
     --cell-width: 60px;
     --cell-height: 88px;
-  }
-
-  .degree-pointer-badge {
-    font-size: 0.48rem;
-    padding: 1px 3px;
   }
 
   .scale-degrees-grid {

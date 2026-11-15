@@ -68,8 +68,13 @@
 
     <!-- Área Principal da Régua Interativa -->
     <main class="interactive-stage">
-      <!-- Faixa de Indicadores de Graus (posicionados por JS acima das células) -->
-      <div class="degree-pointers-container" id="degreePointersContainer"></div>
+      <!-- Indicador da Tônica / Linha Guia -->
+      <div class="stage-guide-container">
+        <div class="tonic-pointer-label">
+          <span class="pointer-badge">TÔNICA (Grau I)</span>
+          <div class="pointer-arrow">▼</div>
+        </div>
+      </div>
 
       <!-- Régua Superior: Máscara Fixa dos Intervalos (Setas Tom / Semitom) -->
       <div class="intervals-ruler-wrapper">
@@ -124,8 +129,8 @@
         </button>
       </div>
 
-      <!-- Banner de Alerta Didático de Ortografia Diatônica -->
-      <div id="orthographyBannerContainer"></div>
+      <!-- Banner Didático de Alerta / Sucesso de Ortografia Diatônica -->
+      <div id="theoryBannerContainer" class="theory-banner-wrapper"></div>
 
       <!-- Tabela / Lista dos Graus da Escala Resultante -->
       <div class="scale-degrees-grid" id="scaleDegreesGrid">
