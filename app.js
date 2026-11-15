@@ -276,12 +276,48 @@ function updateCellDimensions() {
     dom.intervalsContainer.style.transform = `translateX(${state.anchorX}px)`;
   }
 
-  // Ajusta a posição do indicador da tônica (ponteiro) perfeitamente alinhado ao centro da célula
-  const pointerLabel = document.querySelector(".tonic-pointer-label");
-  if (pointerLabel) {
-    const centerTonicX = state.anchorX + (state.cellWidth / 2);
-    pointerLabel.style.transform = `translateX(${centerTonicX}px) translateX(-50%)`;
-  }
+  // Renderiza e posiciona os indicadores de graus (Tônica em âmbar, demais graus em azul)
+  renderDegreePointers();
+}
+
+/**
+ * Renderiza os badges superiores com setas apontando para cada grau da escala:
+ * - Grau I (Tônica): Badge dourado/âmbar "TÔNICA (Grau I)"
+ * - Demais Graus (II, III, IV, V, VI, VII, VIII): Badges em azul elétrico
+ */
+function renderDegreePointers() {
+  const container = document.getElementById("stageGuideContainer");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const scale = SCALES[state.currentScaleKey];
+  const relativeOffsets = getScaleRelativeOffsets();
+  const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
+
+  relativeOffsets.forEach((offset, idx) => {
+    const isTonic = idx === 0;
+    const isOctave = idx === relativeOffsets.length - 1;
+    const roman = romanNumerals[idx] || (idx + 1);
+
+    const pointerEl = document.createElement("div");
+    pointerEl.className = `degree-pointer-label ${isTonic ? "is-tonic" : "is-degree"}`;
+
+    const fullLabel = isTonic ? "TÔNICA (I)" : `Grau ${roman}`;
+    const shortLabel = isTonic ? "I" : roman;
+
+    pointerEl.innerHTML = `
+      <span class="pointer-badge" title="${isTonic ? 'Grau I (Tônica)' : (isOctave ? 'Grau VIII (Oitava)' : `Grau ${roman}`)}">
+        <span class="label-full">${fullLabel}</span>
+        <span class="label-short">${shortLabel}</span>
+      </span>
+      <div class="pointer-arrow">▼</div>
+    `;
+
+    const targetX = state.anchorX + (offset * state.cellWidth) + (state.cellWidth / 2);
+    pointerEl.style.transform = `translateX(${targetX}px) translateX(-50%)`;
+
+    container.appendChild(pointerEl);
+  });
 }
 
 // ==========================================
@@ -1096,6 +1132,7 @@ function setupEventListeners() {
 
 function renderAll() {
   renderIntervalsSvg();
+  renderDegreePointers();
   renderTapeHighlights();
   renderDashboard();
   updateQuickRootsActive();
