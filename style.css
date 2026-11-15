@@ -180,6 +180,7 @@ body {
   padding: 7px 14px;
   border-radius: calc(var(--radius-md) - 2px);
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.18s ease;
 }
 
@@ -812,37 +813,234 @@ body {
   border-radius: var(--radius-sm);
 }
 
-/* Card Teórico */
-.theory-card {
+/* Card de Notação Musical na Pauta (Pentagrama) */
+.musical-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 24px;
-}
-
-.theory-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 12px;
-}
-
-.theory-content {
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.theory-list {
-  margin-top: 12px;
-  padding-left: 20px;
   display: flex;
   flex-direction: column;
+  gap: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.musical-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.musical-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.musical-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.theory-list strong {
-  color: #ffffff;
+.musical-subtitle {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.musical-controls-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.clef-selector-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clef-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.staff-viewport {
+  width: 100%;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 190px;
+  position: relative;
+}
+
+.staff-output {
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.staff-stave-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.staff-stave-block + .staff-stave-block {
+  padding-top: 14px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.staff-block-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 12px 4px;
+}
+
+.staff-block-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.3px;
+}
+
+.staff-block-tag.is-sharp {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.staff-block-tag.is-flat {
+  background: #f3e8ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+}
+
+.staff-block-desc {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.staff-canvas {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.staff-output svg {
+  overflow: visible;
+  display: block;
+  user-select: none;
+}
+
+.staff-output .vf-stavenote {
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.staff-output .vf-stavenote:hover {
+  filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.85));
+}
+
+.staff-output .vf-stavenote:hover path {
+  fill: #0284c7 !important;
+}
+
+.staff-info-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 18px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.staff-info-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.staff-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+.staff-badge-key {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.staff-badge-key .badge-val {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.staff-badge-signature {
+  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.staff-badge-signature .badge-val {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.staff-badge-clef {
+  border-color: rgba(168, 85, 247, 0.4);
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.staff-badge-clef .badge-val {
+  color: #c084fc;
+  font-weight: 600;
+}
+
+.staff-interactive-hint {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Rodapé */

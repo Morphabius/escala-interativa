@@ -135,19 +135,41 @@
       </div>
     </section>
 
-    <!-- Seção Explicativa Teórica e Didática -->
-    <section class="theory-card">
-      <h3 class="theory-title">📖 Como funciona a Régua de Escalas?</h3>
-      <div class="theory-content">
-        <p>
-          A música ocidental divide a oitava em <strong>12 semitons</strong> (a escala cromática). 
-          Cada tipo de escala nada mais é do que uma <strong>fórmula fixa de distâncias</strong> (tons e semitons) aplicada a partir de uma nota de partida (a <em>Tônica</em>).
-        </p>
-        <ul class="theory-list">
-          <li><strong>TOM (T):</strong> Salto de 2 semitons (pula 1 casa na fita cromática).</li>
-          <li><strong>SEMITOM (ST):</strong> Menor distância padrão (casa imediatamente vizinha).</li>
-          <li><strong>Efeito deslizante:</strong> Ao mover a fita cromática para qualquer lado, as notas sob os vértices das setas mudam automaticamente, revelando instantaneamente todas as notas da escala escolhida sem precisar decorar uma por uma!</li>
-        </ul>
+    <!-- Seção de Notação Musical na Pauta (Pentagrama) -->
+    <section class="musical-card">
+      <div class="musical-card-header">
+        <div class="musical-title-group">
+          <h3 class="musical-title">🎼 Notação Musical na Pauta</h3>
+          <p class="musical-subtitle">Visualização no pentagrama com armadura de clave e notas da escala</p>
+        </div>
+        <div class="musical-controls-group">
+          <div class="clef-selector-group">
+            <span class="clef-label">Armadura de clave:</span>
+            <div class="toggle-group" id="keySigToggle">
+              <button type="button" class="toggle-btn active" data-keysig="on" title="Exibir armadura de clave no início da pauta">Ligado</button>
+              <button type="button" class="toggle-btn" data-keysig="off" title="Ocultar armadura e mostrar acidentes diretamente nas notas">Desligado</button>
+            </div>
+          </div>
+
+          <div class="clef-selector-group">
+            <span class="clef-label">Clave:</span>
+            <div class="toggle-group" id="clefToggle">
+              <button type="button" class="toggle-btn active" data-clef="treble" title="Clave de Sol na 2ª linha">Clave de Sol</button>
+              <button type="button" class="toggle-btn" data-clef="alto" title="Clave de Dó na 3ª linha">Clave de Dó</button>
+              <button type="button" class="toggle-btn" data-clef="bass" title="Clave de Fá na 4ª linha">Clave de Fá</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Viewport / Canvas da Pauta Musical -->
+      <div class="staff-viewport" id="staffViewport">
+        <div id="staffOutput" class="staff-output"></div>
+      </div>
+
+      <!-- Barra Informativa de Tonalidade, Armadura e Clave -->
+      <div class="staff-info-bar" id="staffInfoBar">
+        <!-- Detalhes injetados dinamicamente via JS -->
       </div>
     </section>
 
@@ -157,6 +179,7 @@
     </footer>
   </div>
 
+  <script src="lib/vexflow.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
