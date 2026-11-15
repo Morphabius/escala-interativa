@@ -287,8 +287,10 @@ body {
 .intervals-ruler-wrapper {
   width: 100%;
   overflow: hidden;
-  height: 95px;
+  height: 64px;
+  margin-bottom: -9px;
   position: relative;
+  z-index: 15;
   user-select: none;
 }
 
@@ -319,7 +321,7 @@ body {
   border: 1px solid var(--border-strong);
   display: flex;
   align-items: center;
-  margin: 4px 0 16px;
+  margin: 0 0 16px;
 }
 
 .tape-viewport:active {

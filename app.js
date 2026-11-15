@@ -411,7 +411,7 @@ function renderIntervalsSvg() {
   const steps = scale.steps;
   const totalSemitones = steps.reduce((sum, s) => sum + s, 0); // Geralmente 12
   const svgWidth = (totalSemitones + 1) * state.cellWidth;
-  const svgHeight = 95;
+  const svgHeight = 64;
 
   dom.intervalsContainer.style.width = `${svgWidth}px`;
   dom.intervalsContainer.style.transform = `translateX(${state.anchorX}px)`;
@@ -444,39 +444,39 @@ function renderIntervalsSvg() {
     let label = "";
 
     if (step === 1) {
-      // SEMITOM: Pico angular pontiagudo
+      // SEMITOM: Pico angular pontiagudo com ângulo fechado, saindo e chegando ao topo da célula
       label = "SEMITOM";
-      const yBase = 84;
-      const yPeak = 30;
+      const yBase = 63;
+      const yPeak = 24;
       const xMid = (xStart + xEnd) / 2;
-      pathD = `M ${xStart} ${yBase} L ${xMid} ${yPeak} L ${xEnd} ${yBase - 8}`;
+      pathD = `M ${xStart} ${yBase} L ${xMid} ${yPeak} L ${xEnd} ${yBase - 6}`;
     } else if (step === 2) {
-      // TOM: Arco curvo de topo plano
+      // TOM: Arco curvo de topo plano (altura reduzida em 60%, saindo e chegando ao topo da célula)
       label = "TOM";
-      const yBase = 84;
-      const yTop = 24;
-      const r = 14;
+      const yBase = 63;
+      const yTop = 39;
+      const r = 10;
       pathD = `
         M ${xStart} ${yBase}
         L ${xStart} ${yTop + r}
         Q ${xStart} ${yTop} ${xStart + r} ${yTop}
         L ${xEnd - r} ${yTop}
         Q ${xEnd} ${yTop} ${xEnd} ${yTop + r}
-        L ${xEnd} ${yBase - 8}
+        L ${xEnd} ${yBase - 6}
       `;
     } else {
-      // 1.5 TOM ou outro salto
+      // 1.5 TOM ou outro salto (altura reduzida em 60%, saindo e chegando ao topo da célula)
       label = step === 3 ? "1½ TOM" : `${step} SEMITONS`;
-      const yBase = 84;
-      const yTop = 18;
-      const r = 18;
+      const yBase = 63;
+      const yTop = 37;
+      const r = 11;
       pathD = `
         M ${xStart} ${yBase}
         L ${xStart} ${yTop + r}
         Q ${xStart} ${yTop} ${xStart + r} ${yTop}
         L ${xEnd - r} ${yTop}
         Q ${xEnd} ${yTop} ${xEnd} ${yTop + r}
-        L ${xEnd} ${yBase - 8}
+        L ${xEnd} ${yBase - 6}
       `;
     }
 
@@ -492,7 +492,7 @@ function renderIntervalsSvg() {
 
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
     text.setAttribute("x", (xStart + xEnd) / 2);
-    text.setAttribute("y", step === 1 ? 22 : (step >= 3 ? 14 : 17));
+    text.setAttribute("y", step === 1 ? 15 : (step >= 3 ? 28 : 30));
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("fill", "#e2e8f0");
     text.setAttribute("font-size", step === 1 ? "11" : "12");
@@ -723,7 +723,7 @@ function renderDashboard() {
 
   // Grid de Graus
   dom.scaleDegreesGrid.innerHTML = "";
-  const pitchIndices = getScalePitchIndices();
+  const relativeOffsets = getScaleRelativeOffsets();
 
   scaleAnalysis.degreeNotes.forEach((noteNameRaw, i) => {
     const isRoot = i === 0 || i === scaleAnalysis.degreeNotes.length - 1;
@@ -746,9 +746,10 @@ function renderDashboard() {
       ${hasConflict ? '<span class="conflict-badge">⚠️ Repetição</span>' : ''}
     `;
 
-    const pitch = pitchIndices[i] !== undefined ? pitchIndices[i] : (state.currentRootPitch);
+    const offset = relativeOffsets[i] !== undefined ? relativeOffsets[i] : 0;
+    const midiNote = 60 + state.currentRootPitch + offset;
     card.addEventListener("click", () => {
-      playTone(pitch + 60);
+      playTone(midiNote);
     });
 
     dom.scaleDegreesGrid.appendChild(card);
@@ -1520,6 +1521,7 @@ function renderSingleStaffInstance(parentContainer, config) {
   // Converte as notas da escala para o formato VexFlow
   const notesVexInfo = convertScaleNotesToVexKeys(degreeNotes, clef);
   const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
+  const relativeOffsets = getScaleRelativeOffsets();
 
   // Cria os StaveNotes com durações de semínima ('q')
   const staveNotes = notesVexInfo.map((noteInfo, idx) => {
@@ -1539,9 +1541,9 @@ function renderSingleStaffInstance(parentContainer, config) {
 
     staveNote.addModifier(annotation, 0);
 
-    // Salva referências para áudio e interação
-    const pitch = pitchIndices[idx] !== undefined ? pitchIndices[idx] : (state.currentRootPitch);
-    staveNote._pitch = pitch;
+    // Salva referências para áudio e interação (respeitando a oitava ascendente)
+    const offset = relativeOffsets[idx] !== undefined ? relativeOffsets[idx] : 0;
+    staveNote._midi = 60 + state.currentRootPitch + offset;
     staveNote._idx = idx;
     staveNote._noteName = noteInfo.noteName;
 
@@ -1586,8 +1588,8 @@ function attachStaffNotesAudio(containerEl, staveNotes) {
     el.style.cursor = "pointer";
 
     el.addEventListener("click", () => {
-      if (noteObj._pitch !== undefined) {
-        playTone(noteObj._pitch + 60, 0.45);
+      if (noteObj._midi !== undefined) {
+        playTone(noteObj._midi, 0.45);
       }
       el.style.transform = "scale(1.15)";
       el.style.transformOrigin = "center";
