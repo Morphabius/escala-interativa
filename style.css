@@ -415,6 +415,45 @@ body {
   color: #1a1303;
 }
 
+/* Células em Conflito de Ortografia Diatônica (Vermelho) */
+.chromatic-cell.in-scale.has-conflict {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-right: 1px solid #ef4444 !important;
+  border-left: 1px solid #ef4444 !important;
+  animation: pulse-conflict 2s infinite ease-in-out;
+}
+
+.chromatic-cell.in-scale.has-conflict .cell-note-name {
+  color: #fca5a5 !important;
+  font-weight: 800;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.chromatic-cell.in-scale.has-conflict .cell-enharmonic {
+  color: #f87171 !important;
+  opacity: 1;
+}
+
+.chromatic-cell.in-scale.has-conflict .cell-degree-tag {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+}
+
+.chromatic-cell.is-tonic.has-conflict {
+  border-left: 2px solid #ef4444 !important;
+  border-right: 2px solid #ef4444 !important;
+}
+
+@keyframes pulse-conflict {
+  0%, 100% {
+    box-shadow: inset 0 0 8px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: inset 0 0 16px rgba(239, 68, 68, 0.5);
+  }
+}
+
 /* Barra de Navegação Rápida */
 .tape-navigation-bar {
   width: 100%;
@@ -640,6 +679,90 @@ body {
 
 .degree-card.is-root .degree-num {
   color: var(--tonic-color);
+}
+
+/* Card de Grau com Conflito */
+.degree-card.has-conflict {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+}
+
+.degree-card.has-conflict .degree-num {
+  color: #f87171 !important;
+}
+
+.degree-card.has-conflict .degree-note {
+  color: #fca5a5 !important;
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+.degree-card.has-conflict .degree-name {
+  color: #f87171 !important;
+}
+
+/* Banner de Alerta / Sucesso de Ortografia */
+.orthography-banner {
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  transition: all 0.25s ease;
+}
+
+.orthography-banner.conflict-banner {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fecaca;
+}
+
+.orthography-banner.conflict-banner .banner-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.orthography-banner.conflict-banner .banner-title {
+  font-weight: 700;
+  color: #ef4444;
+  margin-bottom: 3px;
+  font-size: 0.95rem;
+}
+
+.orthography-banner.conflict-banner strong {
+  color: #ffffff;
+}
+
+.orthography-banner.conflict-banner .conflict-tag {
+  background: rgba(239, 68, 68, 0.25);
+  color: #ffffff;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-weight: 700;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.orthography-banner.success-banner {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #a7f3d0;
+}
+
+.orthography-banner.success-banner .banner-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.orthography-banner.success-banner .banner-title {
+  font-weight: 700;
+  color: #10b981;
+  margin-bottom: 2px;
+  font-size: 0.95rem;
+}
+
+.orthography-banner.success-banner strong {
+  color: #ffffff;
 }
 
 /* Card Teórico */

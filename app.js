@@ -135,6 +135,7 @@ const SCALES = {
 const state = {
   currentScaleKey: "major",
   currentRootPitch: 0, // 0 = Dó, 2 = Ré, 4 = Mi, etc.
+  tonicLetter: 0,      // 0 = Dó, 1 = Ré, 2 = Mi, etc.
   notation: "sharp",   // 'sharp', 'flat', 'both'
   naming: "latim",     // 'latim', 'cifra'
   
@@ -243,8 +244,8 @@ function buildTapeCells() {
     cell.dataset.pitch = pitchClass;
     
     cell.innerHTML = `
-      <span class="cell-note-name">${getNoteName(pitchClass)}</span>
-      <span class="cell-enharmonic">${getEnharmonicSubtitle(pitchClass)}</span>
+      <span class="cell-note-name">${getChromaticNoteName(pitchClass)}</span>
+      <span class="cell-enharmonic">${getChromaticEnharmonic(pitchClass)}</span>
       <span class="cell-degree-tag"></span>
     `;
 
@@ -260,46 +261,159 @@ function buildTapeCells() {
   }
 }
 
-function getNoteName(pitchClass, scaleContext = null) {
-  // Se estivermos mostrando a escala diatônica e tivermos a ortografia específica da tonalidade:
-  if (scaleContext && KEY_SPELLINGS.major[state.currentRootPitch] && state.currentScaleKey === "major") {
-    // Procura na escala diatônica
-    const scaleIndices = getScalePitchIndices();
-    const degreeIndex = scaleIndices.indexOf(pitchClass);
-    if (degreeIndex !== -1 && KEY_SPELLINGS.major[state.currentRootPitch][degreeIndex]) {
-      let name = KEY_SPELLINGS.major[state.currentRootPitch][degreeIndex];
-      if (state.naming === "cifra") {
-        name = translateToCifra(name);
-      }
-      return name;
+// ==========================================
+// 6. Teoria e Ortografia Diatônica Rigorosa
+// ==========================================
+
+const DIATONIC_BASE = {
+  latim: ["Dó", "Ré", "Mi", "Fá", "Sol", "Lá", "Si"],
+  cifra: ["C", "D", "E", "F", "G", "A", "B"]
+};
+
+// Pitches naturais dos 7 nomes básicos (Dó=0, Ré=2, Mi=4, Fá=5, Sol=7, Lá=9, Si=11)
+const NATURAL_LETTER_PITCHES = [0, 2, 4, 5, 7, 9, 11];
+
+function getBaseLetter(noteName) {
+  if (!noteName) return "";
+  const matchLatim = noteName.match(/^(Dó|Ré|Mi|Fá|Sol|Lá|Si)/i);
+  if (matchLatim) return matchLatim[1];
+  const matchCifra = noteName.match(/^([A-G])/i);
+  if (matchCifra) return matchCifra[1].toUpperCase();
+  return noteName;
+}
+
+function getChromaticNoteName(pitchClass) {
+  const namingTable = NOTE_NAMES[state.naming] || NOTE_NAMES.latim;
+  if (state.notation === "flat") {
+    return namingTable.flat[pitchClass % 12];
+  } else {
+    return namingTable.sharp[pitchClass % 12];
+  }
+}
+
+function getChromaticEnharmonic(pitchClass) {
+  const isAccidental = [1, 3, 6, 8, 10].includes(pitchClass % 12);
+  if (!isAccidental) return "";
+  const namingTable = NOTE_NAMES[state.naming] || NOTE_NAMES.latim;
+  if (state.notation === "flat") {
+    return namingTable.sharp[pitchClass % 12];
+  } else {
+    return namingTable.flat[pitchClass % 12];
+  }
+}
+
+function getScaleAnalysis() {
+  const scale = SCALES[state.currentScaleKey];
+  const steps = scale.steps;
+  const relativeOffsets = getScaleRelativeOffsets();
+  const rootPitch = state.currentRootPitch;
+  const notation = state.notation; // 'sharp', 'flat', 'both'
+  const naming = state.naming;     // 'latim', 'cifra'
+  const isHeptatonic = steps.length === 7;
+
+  // Determina a letra base da tônica
+  let rootLetter = state.tonicLetter;
+  if (rootLetter === null || rootLetter === undefined) {
+    if (notation === "flat") {
+      rootLetter = [0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6][rootPitch];
+    } else {
+      // sharp ou both (por padrão, pitch 1 = Dó# com rootLetter 0)
+      rootLetter = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][rootPitch];
     }
   }
 
-  // Nome padrão da nota de acordo com as preferências selecionadas
-  const namingTable = NOTE_NAMES[state.naming] || NOTE_NAMES.latim;
-  const list = namingTable[state.notation] || namingTable.sharp;
-  return list[pitchClass % 12];
-}
+  const degrees = [];
 
-function getEnharmonicSubtitle(pitchClass) {
-  // Mostra a notação complementar sutilmente
-  if (state.notation === "both") return "";
-  const isAccidental = [1, 3, 6, 8, 10].includes(pitchClass % 12);
-  if (!isAccidental) return "";
-  
-  if (state.notation === "sharp") {
-    return NOTE_NAMES[state.naming].flat[pitchClass % 12];
-  } else {
-    return NOTE_NAMES[state.naming].sharp[pitchClass % 12];
+  for (let i = 0; i < relativeOffsets.length; i++) {
+    const semitonesFromRoot = relativeOffsets[i];
+    const pitch = (rootPitch + semitonesFromRoot) % 12;
+    const isOctave = (i === relativeOffsets.length - 1) && (semitonesFromRoot === 12);
+
+    let noteName = "";
+    let enharmonicSubtitle = "";
+    let baseLetter = "";
+
+    if (notation === "both" && isHeptatonic) {
+      // Modo Ambos: Ortografia Diatônica Rigorosa (Uma letra exclusiva por grau)
+      const letterIdx = isOctave ? rootLetter : (rootLetter + i) % 7;
+      baseLetter = DIATONIC_BASE[naming][letterIdx];
+      const natPitch = NATURAL_LETTER_PITCHES[letterIdx];
+
+      let diff = (pitch - natPitch) % 12;
+      if (diff > 6) diff -= 12;
+      if (diff < -6) diff += 12;
+
+      let accidental = "";
+      if (diff === 1) accidental = "♯";
+      else if (diff === 2) accidental = "𝄪";
+      else if (diff === -1) accidental = "♭";
+      else if (diff === -2) accidental = "𝄫";
+
+      noteName = baseLetter + accidental;
+
+      // Subtítulo didático para enarmonias incomuns (ex: Mi# -> Fá, Si# -> Dó, Dób -> Si, Fáb -> Mi)
+      if (["Mi♯", "Si♯", "Dó♭", "Fá♭", "E♯", "B♯", "C♭", "F♭"].includes(noteName)) {
+        enharmonicSubtitle = `(${NOTE_NAMES[naming].sharp[pitch]})`;
+      } else if ([1, 3, 6, 8, 10].includes(pitch)) {
+        enharmonicSubtitle = diff > 0 ? NOTE_NAMES[naming].flat[pitch] : NOTE_NAMES[naming].sharp[pitch];
+      }
+    } else if (notation === "sharp") {
+      noteName = NOTE_NAMES[naming].sharp[pitch];
+      baseLetter = getBaseLetter(noteName);
+      if ([1, 3, 6, 8, 10].includes(pitch)) {
+        enharmonicSubtitle = NOTE_NAMES[naming].flat[pitch];
+      }
+    } else if (notation === "flat") {
+      noteName = NOTE_NAMES[naming].flat[pitch];
+      baseLetter = getBaseLetter(noteName);
+      if ([1, 3, 6, 8, 10].includes(pitch)) {
+        enharmonicSubtitle = NOTE_NAMES[naming].sharp[pitch];
+      }
+    } else {
+      noteName = NOTE_NAMES[naming].sharp[pitch];
+      baseLetter = getBaseLetter(noteName);
+    }
+
+    degrees.push({
+      degreeIndex: i,
+      pitch,
+      semitonesFromRoot,
+      noteName,
+      baseLetter,
+      enharmonicSubtitle,
+      hasConflict: false
+    });
   }
-}
 
-function translateToCifra(latimName) {
-  const map = {
-    "Dó": "C", "Ré": "D", "Mi": "E", "Fá": "F",
-    "Sol": "G", "Lá": "A", "Si": "B"
+  // Detecção de repetição de raiz (conflito ortográfico) nos graus únicos
+  const uniqueCount = isHeptatonic ? 7 : degrees.length;
+  const letterCounts = {};
+  for (let k = 0; k < uniqueCount; k++) {
+    const letter = degrees[k].baseLetter;
+    letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+  }
+
+  const conflictLetters = Object.keys(letterCounts).filter(letter => letterCounts[letter] > 1);
+  const hasConflict = conflictLetters.length > 0;
+
+  degrees.forEach((d, idx) => {
+    if (conflictLetters.includes(d.baseLetter)) {
+      d.hasConflict = true;
+    }
+    // A oitava espelha a tônica
+    if (idx === degrees.length - 1 && degrees[0].hasConflict) {
+      d.hasConflict = true;
+    }
+  });
+
+  return {
+    degrees,
+    conflictLetters,
+    hasConflict,
+    isHeptatonic,
+    rootLetter,
+    rootName: degrees[0].noteName
   };
-  return latimName.replace(/(Dó|Ré|Mi|Fá|Sol|Lá|Si)/g, match => map[match] || match);
 }
 
 // ==========================================
@@ -449,16 +563,10 @@ function getScaleRelativeOffsets() {
 // ==========================================
 
 function renderTapeHighlights() {
-  const scale = SCALES[state.currentScaleKey];
   const relativeOffsets = getScaleRelativeOffsets();
+  const analysis = getScaleAnalysis();
   
-  // Identifica qual célula da fita está exatamente na âncora inicial (Tônica)
-  // Como cada célula tem largura cellWidth:
-  // offset na fita = trackOffset
-  // Célula alinhada com a âncora tem posição: (cellIndex * cellWidth) + trackOffset = anchorX
-  // Portanto: cellIndex = Math.round((anchorX - trackOffset) / cellWidth)
   const activeTonicCellIndex = Math.round((state.anchorX - state.trackOffset) / state.cellWidth);
-  
   const cells = dom.tapeTrack.querySelectorAll(".chromatic-cell");
   
   cells.forEach((cell, idx) => {
@@ -467,17 +575,14 @@ function renderTapeHighlights() {
     const enharmonicEl = cell.querySelector(".cell-enharmonic");
     const degreeTagEl = cell.querySelector(".cell-degree-tag");
     
-    // Atualiza o texto das notas com base nas preferências atuais
-    noteNameEl.textContent = getNoteName(pitch);
-    enharmonicEl.textContent = getEnharmonicSubtitle(pitch);
-
-    // Verifica se esta célula coincide com algum grau da escala a partir da tônica ativa
+    // Verifica se esta célula coincide com algum grau da escala
     const diffFromTonicCell = idx - activeTonicCellIndex;
     const degreeIndex = relativeOffsets.indexOf(diffFromTonicCell);
 
-    if (degreeIndex !== -1) {
+    if (degreeIndex !== -1 && degreeIndex < analysis.degrees.length) {
+      const degreeData = analysis.degrees[degreeIndex];
       cell.classList.add("in-scale");
-      const isRoot = degreeIndex === 0 || degreeIndex === relativeOffsets.length - 1;
+      const isRoot = degreeIndex === 0 || degreeIndex === analysis.degrees.length - 1;
       
       if (isRoot) {
         cell.classList.add("is-tonic");
@@ -485,16 +590,28 @@ function renderTapeHighlights() {
         cell.classList.remove("is-tonic");
       }
 
+      // Define os nomes da nota (ex: Dó#, Ré#, Mi#, Si# etc.)
+      noteNameEl.textContent = degreeData.noteName;
+      enharmonicEl.textContent = degreeData.enharmonicSubtitle;
+
+      // Conflito de ortografia diatônica (Destaque em Vermelho!)
+      if (degreeData.hasConflict) {
+        cell.classList.add("has-conflict");
+      } else {
+        cell.classList.remove("has-conflict");
+      }
+
       // Grau exibido na tag
       const degRoman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][degreeIndex] || (degreeIndex + 1);
       degreeTagEl.textContent = degRoman;
     } else {
-      cell.classList.remove("in-scale", "is-tonic");
+      cell.classList.remove("in-scale", "is-tonic", "has-conflict");
       degreeTagEl.textContent = "";
+      noteNameEl.textContent = getChromaticNoteName(pitch);
+      enharmonicEl.textContent = getChromaticEnharmonic(pitch);
     }
   });
 
-  // Atualiza também os botões de atalho rápido
   updateQuickRootsActive();
 }
 
@@ -504,34 +621,81 @@ function renderTapeHighlights() {
 
 function renderDashboard() {
   const scale = SCALES[state.currentScaleKey];
-  const rootName = getNoteName(state.currentRootPitch);
+  const analysis = getScaleAnalysis();
   
-  // Nome formatado elegante da escala (ex: Dó Maior Natural, Lá Menor Harmônica)
   let cleanScaleType = scale.name.replace(/^Escala\s+/i, "");
-  dom.currentScaleTitle.textContent = `${rootName} ${cleanScaleType}`;
+  dom.currentScaleTitle.textContent = `${analysis.rootName} ${cleanScaleType}`;
   dom.scaleFormulaBadge.textContent = scale.formulaText;
+
+  // Banner de Alerta / Sucesso de Ortografia Diatônica
+  const bannerContainer = document.getElementById("orthographyBannerContainer");
+  if (bannerContainer) {
+    if (analysis.hasConflict) {
+      const listConflicts = analysis.conflictLetters.map(letter => {
+        const conflictingNotes = analysis.degrees
+          .filter(d => d.baseLetter === letter)
+          .map(d => d.noteName);
+        const uniqueNames = [...new Set(conflictingNotes)];
+        return `<span class="conflict-tag">${uniqueNames.join(" e ")}</span>`;
+      }).join(", ");
+
+      bannerContainer.innerHTML = `
+        <div class="orthography-banner conflict-banner">
+          <div class="banner-icon">⚠️</div>
+          <div class="banner-text">
+            <div class="banner-title">Alerta de Ortografia Diatônica (Notas Duplicadas)</div>
+            <div class="banner-desc">
+              Nesta visualização, há notas repetindo a mesma raiz: ${listConflicts}. 
+              Pela regra da harmonia tradicional, cada grau da escala deve possuir uma letra exclusiva.
+              Alterne para a aba <strong>Ambos (♯/♭)</strong> para visualizar a grafia correta (ex.: com <strong>Mi♯</strong> e <strong>Si♯</strong>).
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (state.notation === "both" && analysis.isHeptatonic) {
+      const specialNotes = analysis.degrees
+        .filter(d => ["Mi♯", "Si♯", "Dó♭", "Fá♭", "E♯", "B♯", "C♭", "F♭"].includes(d.noteName))
+        .map(d => `<strong>${d.noteName}</strong>`);
+      const uniqueSpecials = [...new Set(specialNotes)];
+
+      let detailsMsg = "Todas as 7 notas possuem letras exclusivas (uma letra por grau).";
+      if (uniqueSpecials.length > 0) {
+        detailsMsg += ` Grafia diatônica rigorosa aplicada: ${uniqueSpecials.join(" e ")} (evitando a duplicação de notas).`;
+      }
+
+      bannerContainer.innerHTML = `
+        <div class="orthography-banner success-banner">
+          <div class="banner-icon">✅</div>
+          <div class="banner-text">
+            <div class="banner-title">Ortografia Diatônica Rigorosa Ativa</div>
+            <div class="banner-desc">${detailsMsg}</div>
+          </div>
+        </div>
+      `;
+    } else {
+      bannerContainer.innerHTML = "";
+    }
+  }
 
   // Grid de Graus
   dom.scaleDegreesGrid.innerHTML = "";
-  const pitchIndices = getScalePitchIndices();
 
-  pitchIndices.forEach((pitch, i) => {
-    const isRoot = i === 0 || i === pitchIndices.length - 1;
+  analysis.degrees.forEach((degreeData, i) => {
+    const isRoot = i === 0 || i === analysis.degrees.length - 1;
     const card = document.createElement("div");
-    card.className = `degree-card ${isRoot ? "is-root" : ""}`;
+    card.className = `degree-card ${isRoot ? "is-root" : ""} ${degreeData.hasConflict ? "has-conflict" : ""}`;
 
     const degreeNum = scale.degrees[i] ? scale.degrees[i].split(" ")[0] : `Grau ${i+1}`;
     const intervalName = scale.intervalsDesc[i] || "";
-    const noteName = getNoteName(pitch, true);
 
     card.innerHTML = `
       <span class="degree-num">${degreeNum}</span>
-      <span class="degree-note">${noteName}</span>
+      <span class="degree-note">${degreeData.noteName}</span>
       <span class="degree-name">${intervalName}</span>
     `;
 
     card.addEventListener("click", () => {
-      playTone(pitch + 60);
+      playTone(degreeData.pitch + 60);
     });
 
     dom.scaleDegreesGrid.appendChild(card);
@@ -542,8 +706,19 @@ function renderDashboard() {
 // 10. Alinhamento e Navegação da Fita
 // ==========================================
 
-function alignToPitch(pitchClass, animate = true) {
+function alignToPitch(pitchClass, animate = true, letterIndex = null) {
   state.currentRootPitch = (pitchClass + 12) % 12;
+
+  if (letterIndex !== null && letterIndex !== undefined) {
+    state.tonicLetter = letterIndex;
+  } else {
+    if (state.notation === "flat") {
+      state.tonicLetter = [0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6][state.currentRootPitch];
+    } else {
+      // sharp ou both (por padrão, pitch 1 = Dó#)
+      state.tonicLetter = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][state.currentRootPitch];
+    }
+  }
 
   // Encontra uma célula com essa pitchClass no centro da fita virtual (por exemplo, ciclo 3)
   const targetCycle = 3;
@@ -669,27 +844,64 @@ function setupDragEvents() {
 
 function buildQuickRoots() {
   dom.quickRootsList.innerHTML = "";
-  for (let pitch = 0; pitch < 12; pitch++) {
+
+  let roots = [];
+  if (state.notation === "both") {
+    roots = [
+      { pitch: 0, letter: 0, name: state.naming === "cifra" ? "C" : "Dó" },
+      { pitch: 1, letter: 0, name: state.naming === "cifra" ? "C♯" : "Dó♯" },
+      { pitch: 1, letter: 1, name: state.naming === "cifra" ? "D♭" : "Ré♭" },
+      { pitch: 2, letter: 1, name: state.naming === "cifra" ? "D" : "Ré" },
+      { pitch: 3, letter: 2, name: state.naming === "cifra" ? "E♭" : "Mi♭" },
+      { pitch: 4, letter: 2, name: state.naming === "cifra" ? "E" : "Mi" },
+      { pitch: 5, letter: 3, name: state.naming === "cifra" ? "F" : "Fá" },
+      { pitch: 6, letter: 3, name: state.naming === "cifra" ? "F♯" : "Fá♯" },
+      { pitch: 6, letter: 4, name: state.naming === "cifra" ? "G♭" : "Sol♭" },
+      { pitch: 7, letter: 4, name: state.naming === "cifra" ? "G" : "Sol" },
+      { pitch: 8, letter: 5, name: state.naming === "cifra" ? "A♭" : "Lá♭" },
+      { pitch: 9, letter: 5, name: state.naming === "cifra" ? "A" : "Lá" },
+      { pitch: 10, letter: 6, name: state.naming === "cifra" ? "B♭" : "Si♭" },
+      { pitch: 11, letter: 6, name: state.naming === "cifra" ? "B" : "Si" }
+    ];
+  } else if (state.notation === "flat") {
+    const list = NOTE_NAMES[state.naming].flat;
+    roots = list.map((name, pitch) => ({
+      pitch,
+      letter: [0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6][pitch],
+      name
+    }));
+  } else {
+    const list = NOTE_NAMES[state.naming].sharp;
+    roots = list.map((name, pitch) => ({
+      pitch,
+      letter: [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][pitch],
+      name
+    }));
+  }
+
+  roots.forEach(root => {
     const btn = document.createElement("button");
     btn.className = "quick-root-btn";
-    btn.dataset.pitch = pitch;
-    btn.textContent = getNoteName(pitch);
-    
+    btn.dataset.pitch = root.pitch;
+    btn.dataset.letter = root.letter;
+    btn.textContent = root.name;
+
     btn.addEventListener("click", () => {
-      alignToPitch(pitch, true);
-      playTone(pitch + 60);
+      state.tonicLetter = root.letter;
+      alignToPitch(root.pitch, true, root.letter);
+      playTone(root.pitch + 60);
     });
 
     dom.quickRootsList.appendChild(btn);
-  }
+  });
 }
 
 function updateQuickRootsActive() {
   const btns = dom.quickRootsList.querySelectorAll(".quick-root-btn");
   btns.forEach(btn => {
     const pitch = parseInt(btn.dataset.pitch);
-    btn.textContent = getNoteName(pitch);
-    if (pitch === state.currentRootPitch) {
+    const letter = parseInt(btn.dataset.letter);
+    if (pitch === state.currentRootPitch && (state.tonicLetter === null || state.tonicLetter === undefined || letter === state.tonicLetter)) {
       btn.classList.add("active");
     } else {
       btn.classList.remove("active");
@@ -796,6 +1008,17 @@ function setupEventListeners() {
     dom.accidentalToggle.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     state.notation = btn.dataset.notation;
+
+    // Se alternou para both e estiver em pitch 1, garante Dó# (letter 0)
+    if (state.notation === "both" && state.currentRootPitch === 1) {
+      state.tonicLetter = 0;
+    } else if (state.notation === "sharp") {
+      state.tonicLetter = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][state.currentRootPitch];
+    } else if (state.notation === "flat") {
+      state.tonicLetter = [0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6][state.currentRootPitch];
+    }
+
+    buildQuickRoots();
     renderAll();
   });
 
@@ -806,6 +1029,7 @@ function setupEventListeners() {
     dom.namingToggle.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     state.naming = btn.dataset.naming;
+    buildQuickRoots();
     renderAll();
   });
 
