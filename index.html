@@ -83,26 +83,30 @@
 
     <!-- Área Principal da Régua Interativa -->
     <main class="interactive-stage">
-      <!-- Indicador dos Graus / Linha Guia Superior -->
-      <div class="stage-guide-container" id="stageGuideContainer">
-        <!-- Badges dos graus (Tônica em âmbar, demais graus em azul) injetados via JS -->
-      </div>
+      <div class="stage-scaler-box" id="stageScalerBox">
+        <div class="stage-scaler-inner" id="stageScalerInner">
+          <!-- Indicador dos Graus / Linha Guia Superior -->
+          <div class="stage-guide-container" id="stageGuideContainer">
+            <!-- Badges dos graus (Tônica em âmbar, demais graus em azul) injetados via JS -->
+          </div>
 
-      <!-- Régua Superior: Máscara Fixa dos Intervalos (Setas Tom / Semitom) -->
-      <div class="intervals-ruler-wrapper">
-        <div class="intervals-canvas-container" id="intervalsContainer">
-          <svg id="intervalsSvg" class="intervals-svg"></svg>
-        </div>
-      </div>
+          <!-- Régua Superior: Máscara Fixa dos Intervalos (Setas Tom / Semitom) -->
+          <div class="intervals-ruler-wrapper">
+            <div class="intervals-canvas-container" id="intervalsContainer">
+              <svg id="intervalsSvg" class="intervals-svg"></svg>
+            </div>
+          </div>
 
-      <!-- Régua Inferior: Fita Cromática Infinita (Arraste lateral) -->
-      <div class="tape-viewport" id="tapeViewport">
-        <div class="tape-track" id="tapeTrack">
-          <!-- Células cromáticas injetadas via JS -->
+          <!-- Régua Inferior: Fita Cromática Infinita (Arraste lateral) -->
+          <div class="tape-viewport" id="tapeViewport">
+            <div class="tape-track" id="tapeTrack">
+              <!-- Células cromáticas injetadas via JS -->
+            </div>
+            <!-- Gradientes de esmaecimento lateral nas bordas -->
+            <div class="viewport-shadow left-shadow"></div>
+            <div class="viewport-shadow right-shadow"></div>
+          </div>
         </div>
-        <!-- Gradientes de esmaecimento lateral nas bordas -->
-        <div class="viewport-shadow left-shadow"></div>
-        <div class="viewport-shadow right-shadow"></div>
       </div>
 
       <!-- Controles de Navegação Rápida da Fita -->

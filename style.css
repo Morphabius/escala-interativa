@@ -209,6 +209,17 @@ body {
   overflow: hidden;
 }
 
+.stage-scaler-box {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.stage-scaler-inner {
+  width: 100%;
+  transform-origin: top left;
+}
+
 /* Indicador e Guia dos Graus (Tônica em âmbar, demais graus em azul) */
 .stage-guide-container {
   width: 100%;
@@ -957,6 +968,18 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.staff-canvas {
+  width: 100%;
+  overflow: hidden;
+}
+
+.staff-output svg {
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100%;
+  display: block;
 }
 
 .staff-stave-block + .staff-stave-block {

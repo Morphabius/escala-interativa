@@ -208,7 +208,8 @@ const state = {
   dragStartOffset: 0,
   
   // Âncora fixa onde a escala começa
-  anchorX: 0
+  anchorX: 0,
+  stageScale: 1
 };
 
 // ==========================================
@@ -222,6 +223,8 @@ const dom = {
   keySigToggle: document.getElementById("keySigToggle"),
   clefToggle: document.getElementById("clefToggle"),
   
+  stageScalerBox: document.getElementById("stageScalerBox"),
+  stageScalerInner: document.getElementById("stageScalerInner"),
   intervalsContainer: document.getElementById("intervalsContainer"),
   intervalsSvg: document.getElementById("intervalsSvg"),
   
@@ -268,26 +271,40 @@ function init() {
 }
 
 function updateCellDimensions() {
-  const viewportWidth = dom.tapeViewport.clientWidth || 900;
+  const availableWidth = (dom.stageScalerBox ? dom.stageScalerBox.clientWidth : dom.tapeViewport.clientWidth) || 900;
 
-  if (viewportWidth >= 660) {
-    // Em tablets e desktops, ajusta a largura da célula dinamicamente para exibir os 13 semitons inteiros
-    state.cellWidth = Math.min(80, Math.max(50, Math.floor((viewportWidth - 16) / 13)));
-  } else if (viewportWidth >= 420) {
-    state.cellWidth = 60;
+  if (availableWidth >= 660) {
+    // Em tablets e desktops, ajusta a largura da célula dinamicamente para exibir os 13 semitons inteiros em escala 1:1
+    state.stageScale = 1;
+    state.cellWidth = Math.min(80, Math.max(50, Math.floor((availableWidth - 16) / 13)));
+    document.documentElement.style.setProperty("--cell-width", `${state.cellWidth}px`);
+
+    if (dom.stageScalerInner) {
+      dom.stageScalerInner.style.width = "";
+      dom.stageScalerInner.style.transform = "";
+    }
+    if (dom.stageScalerBox) {
+      dom.stageScalerBox.style.height = "";
+    }
+
+    const scaleSpan = 13 * state.cellWidth;
+    state.anchorX = Math.max(8, Math.round((availableWidth - scaleSpan) / 2));
   } else {
-    state.cellWidth = 54;
-  }
+    // Em celulares retrato (< 660px), mantém legibilidade lógica (56px/célula) e escala proporcionalmente para caber 100% na tela
+    state.cellWidth = 56;
+    document.documentElement.style.setProperty("--cell-width", `${state.cellWidth}px`);
 
-  document.documentElement.style.setProperty("--cell-width", `${state.cellWidth}px`);
-
-  // Calcula o ponto de ancoragem (onde a primeira nota da escala deve ficar)
-  const scaleSpan = 13 * state.cellWidth;
-
-  if (viewportWidth >= scaleSpan + 16) {
-    state.anchorX = Math.round((viewportWidth - scaleSpan) / 2);
-  } else {
+    const logicalWidth = 13 * state.cellWidth + 16; // 744px
+    state.stageScale = Math.min(1, availableWidth / logicalWidth);
     state.anchorX = 8;
+
+    if (dom.stageScalerInner) {
+      dom.stageScalerInner.style.width = `${logicalWidth}px`;
+      dom.stageScalerInner.style.transform = `scale(${state.stageScale})`;
+    }
+    if (dom.stageScalerBox && dom.stageScalerInner) {
+      dom.stageScalerBox.style.height = `${Math.ceil(dom.stageScalerInner.offsetHeight * state.stageScale)}px`;
+    }
   }
 
   // Posiciona o container de arcos SVG exatamente em anchorX
@@ -859,10 +876,11 @@ function setupDragEvents() {
 
   const onPointerMove = (e) => {
     if (!state.isDragging) return;
-    const deltaX = e.clientX - state.dragStartX;
-    if (Math.abs(deltaX) > 4) {
+    const rawDeltaX = e.clientX - state.dragStartX;
+    if (Math.abs(rawDeltaX) > 4) {
       state.justDragged = true;
     }
+    const deltaX = rawDeltaX / (state.stageScale || 1);
     state.trackOffset = state.dragStartOffset + deltaX;
 
     const singleCycleWidth = 12 * state.cellWidth;
@@ -1499,6 +1517,12 @@ function renderSingleStaffInstance(parentContainer, config) {
 
   const renderer = new Vex.Flow.Renderer(canvasDiv, Vex.Flow.Renderer.Backends.SVG);
   renderer.resize(staffWidth, staffHeight);
+  const svgEl = canvasDiv.querySelector("svg");
+  if (svgEl) {
+    svgEl.setAttribute("viewBox", `0 0 ${staffWidth} ${staffHeight}`);
+    svgEl.style.width = "100%";
+    svgEl.style.height = "auto";
+  }
   const context = renderer.getContext();
   context.setFont("Arial", 11, "").setBackgroundFillStyle("#ffffff");
 
